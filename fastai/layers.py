@@ -173,13 +173,29 @@ class PartialLayer(Module):
     def forward(self, x): return self.func(x)
     def __repr__(self): return self.repr
 
+class CustomAdaptiveMaxPool2d(Module):
+    def __init__(self, sz=None):
+        super().__init__()
+        self.p = nn.MaxPool2d((7, 7), padding=0) 
+    
+    def forward(self, x):
+        return self.p(x)
+
+class CustomAdaptiveAvgPool2d(Module):
+    def __init__(self, sz=None):
+        super().__init__()
+        self.p = nn.AvgPool2d((7, 7), padding=0)
+
+    def forward(self, x): 
+        return self.p(x)
+
 class AdaptiveConcatPool2d(Module):
     "Layer that concats `AdaptiveAvgPool2d` and `AdaptiveMaxPool2d`."
     def __init__(self, sz:Optional[int]=None):
         "Output will be 2*sz or 2 if sz is None"
         self.output_size = sz or 1
-        self.ap = nn.AdaptiveAvgPool2d(self.output_size)
-        self.mp = nn.AdaptiveMaxPool2d(self.output_size)
+        self.ap = CustomAdaptiveAvgPool2d(self.output_size)
+        self.mp = CustomAdaptiveMaxPool2d(self.output_size)
 
     def forward(self, x): return torch.cat([self.mp(x), self.ap(x)], 1)
 
